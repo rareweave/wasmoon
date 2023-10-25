@@ -39,73 +39,35 @@ class PromiseTypeExtension<T = unknown> extends TypeExtension<Promise<T>> {
                 }
                 return true
             }
+            checkSelf(self)
+            
+            let promiseResult: { status: 'fulfilled' | 'rejected'; value: any } | undefined = undefined
 
-            thread.pushValue({
-                next: (self: Promise<unknown>, ...args: Parameters<typeof self.then>) => checkSelf(self) && self.then(...args),
-                catch: (self: Promise<unknown>, ...args: Parameters<typeof self.catch>) => checkSelf(self) && self.catch(...args),
-                finally: (self: Promise<unknown>, ...args: Parameters<typeof self.finally>) => checkSelf(self) && self.finally(...args),
-                await: decorateFunction(
-                    (functionThread: Thread, self: Promise<any>) => {
-                        checkSelf(self)
-
-                        if (functionThread.address === thread.address) {
-                            throw new Error('cannot await in the main thread')
-                        }
-
-                        let promiseResult: { status: 'fulfilled' | 'rejected'; value: any } | undefined = undefined
-
-                        const awaitPromise = self
+            thread.lua.lua_yield(thread.address, 0);
+             const awaitPromise = self
                             .then((res) => {
                                 promiseResult = { status: 'fulfilled', value: res }
                             })
                             .catch((err) => {
                                 promiseResult = { status: 'rejected', value: err }
                             })
-
-                        const continuance = this.thread.lua.module.addFunction((continuanceState: LuaState) => {
-                            // If this yield has been called from within a coroutine and so manually resumed
-                            // then there may not yet be any results. In that case yield again.
-                            if (!promiseResult) {
-                                // 1 is because the initial yield pushed a promise reference so this pops
-                                // it and re-returns it.
-                                // 0 because this is called between resumes so the first one should've
-                                // popped the promise before returning the result. This is true within
-                                // Lua's coroutine.resume too.
-                                return thread.lua.lua_yieldk(functionThread.address, 0, 0, continuance)
-                            }
-
-                            this.thread.lua.module.removeFunction(continuance)
-
-                            const continuanceThread = thread.stateToThread(continuanceState)
-
-                            if (promiseResult.status === 'rejected') {
-                                continuanceThread.pushValue(promiseResult.value || new Error('promise rejected with no error'))
-                                return this.thread.lua.lua_error(continuanceState)
-                            }
-
-                            if (promiseResult.value instanceof RawResult) {
+              if (!promiseResult) {
+                thread.pushValue(null);
+                return thread.lua.lua_resume(thread.address,null,0);
+              }
+            if (promiseResult.value instanceof RawResult) {
                                 return promiseResult.value.count
                             } else if (promiseResult.value instanceof MultiReturn) {
                                 for (const arg of promiseResult.value) {
-                                    continuanceThread.pushValue(arg)
+                                    thread.pushValue(arg)
                                 }
                                 return promiseResult.value.length
                             } else {
-                                continuanceThread.pushValue(promiseResult.value)
+                                thread.pushValue(promiseResult.value)
                                 return 1
                             }
-                        }, 'iiii')
-
-                        functionThread.pushValue(awaitPromise)
-                        return new RawResult(thread.lua.lua_yieldk(functionThread.address, 1, 0, continuance))
-                    },
-                    { receiveThread: true },
-                ),
-            })
-            thread.lua.lua_setfield(thread.address, metatableIndex, '__index')
-
-            thread.pushValue((self: Promise<unknown>, other: Promise<unknown>) => self === other)
-            thread.lua.lua_setfield(thread.address, metatableIndex, '__eq')
+            thread.pushValue(awaitPromise)
+            return new RawResult(thread.lua.lua_resume(thread.address,null,0)))
         }
         // Pop the metatable from the stack.
         thread.lua.lua_pop(thread.address, 1)
