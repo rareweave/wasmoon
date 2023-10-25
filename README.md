@@ -4,6 +4,8 @@
 
 # Wasmoon
 
+> THIS IS FORK OF ORIGINAL WASMOON, REMOVING ASYNC FUNCTIONALITY AND REPLACING IT WITH EXPLICIT AWAIT THAT BLOCKS LUA EXECUTION. MEANT FOR VERY SPECIFIC USAGES WHERE DETERMENISM IS PREFERABLE
+
 This package aims to provide a way to:
 
 -   Embed Lua to any Node.js, Deno or Web Application.
@@ -114,7 +116,7 @@ module.exports = {
             child_process: false,
             crypto: false,
             url: false,
-            module: false
+            module: false,
         },
     },
 }

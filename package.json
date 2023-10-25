@@ -1,5 +1,5 @@
 {
-    "name": "wasmoon",
+    "name": "glome-wasmoon",
     "version": "1.15.0",
     "description": "A real lua VM with JS bindings made with webassembly",
     "main": "dist/index.js",
@@ -25,14 +25,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/ceifa/wasmoon.git"
+        "url": "git+https://github.com/rareweave/wasmoon.git"
     },
-    "author": "ceifa",
+    "author": "ceifa+angrymouse",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/ceifa/wasmoon/issues"
+        "url": "https://github.com/rareweave/wasmoon/issues"
     },
-    "homepage": "https://github.com/ceifa/wasmoon#readme",
+    "homepage": "https://github.com/rareweave/wasmoon#readme",
     "keywords": [
         "lua",
         "moon",
