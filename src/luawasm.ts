@@ -155,7 +155,7 @@ export default class LuaWasm {
     public lua_load: (L: LuaState, reader: number | null, dt: number | null, chunkname: string | null, mode: string | null) => LuaReturn
     public lua_dump: (L: LuaState, writer: number | null, data: number | null, strip: number) => number
     public lua_yieldk: (L: LuaState, nresults: number, ctx: number, k: number | null) => number
-    public lua_yield: (L: LuaState, nresults:number)
+    public lua_yield: (L: LuaState, nresults:number) => number
     public lua_resume: (L: LuaState, from: LuaState | null, narg: number, nres: number | null) => LuaReturn
     public lua_status: (L: LuaState) => LuaReturn
     public lua_isyieldable: (L: LuaState) => number

@@ -89,7 +89,19 @@ class FunctionTypeExtension extends TypeExtension<FunctionType, FunctionDecorati
 
             try {
                 const result = target.apply(options?.self, args)
-
+                if (result instanceof Promise) {
+                    result
+                        .then(res => {
+                            calledThread.pushValue(res);
+                            calledThread.lua.lua_resume(calledThread.address, null,0, 1);
+                        })
+                        .catch(err => {
+                            calledThread.pushValue(err);
+                            calledThread.lua.lua_resume(calledThread.address, null,0, 1);
+                        });
+                    
+                    return calledThread.lua.lua_yield(calledThread.address, 0);
+                }
                 if (result === undefined) {
                     return 0
                 } else if (result instanceof RawResult) {
