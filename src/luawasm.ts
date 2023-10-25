@@ -155,6 +155,7 @@ export default class LuaWasm {
     public lua_load: (L: LuaState, reader: number | null, dt: number | null, chunkname: string | null, mode: string | null) => LuaReturn
     public lua_dump: (L: LuaState, writer: number | null, data: number | null, strip: number) => number
     public lua_yieldk: (L: LuaState, nresults: number, ctx: number, k: number | null) => number
+    public lua_yield: (L: LuaState, nresults:number)
     public lua_resume: (L: LuaState, from: LuaState | null, narg: number, nres: number | null) => LuaReturn
     public lua_status: (L: LuaState) => LuaReturn
     public lua_isyieldable: (L: LuaState) => number
@@ -312,6 +313,7 @@ export default class LuaWasm {
         this.lua_load = this.cwrap('lua_load', 'number', ['number', 'number', 'number', 'string', 'string'])
         this.lua_dump = this.cwrap('lua_dump', 'number', ['number', 'number', 'number', 'number'])
         this.lua_yieldk = this.cwrap('lua_yieldk', 'number', ['number', 'number', 'number', 'number'])
+        this.lua_yield = this.cwrap('lua_yield', 'number', ['number'])
         this.lua_resume = this.cwrap('lua_resume', 'number', ['number', 'number', 'number', 'number'])
         this.lua_status = this.cwrap('lua_status', 'number', ['number'])
         this.lua_isyieldable = this.cwrap('lua_isyieldable', 'number', ['number'])
@@ -363,10 +365,6 @@ export default class LuaWasm {
 
     public luaL_getmetatable(luaState: LuaState, name: string): LuaType {
         return this.lua_getfield(luaState, LUA_REGISTRYINDEX, name)
-    }
-
-    public lua_yield(luaState: LuaState, count: number): number {
-        return this.lua_yieldk(luaState, count, 0, null)
     }
 
     public lua_upvalueindex(index: number): number {
